@@ -30,81 +30,99 @@ impl<T> SliceUncheckedExt<T> for [T] {
 
 
 impl<'a, T> UncheckedSlice<'a, T> {
-    fn new(slice: &'a [T]) -> UncheckedSlice<'a, T> {
+    /// Makes a new unchecked slice from a slice
+    pub fn new(slice: &'a [T]) -> UncheckedSlice<'a, T> {
         UncheckedSlice{ slice: slice }
     }
 
-    fn len(&self) -> uint {
+    /// Gets the length of the slice
+    pub fn len(&self) -> uint {
         self.slice.len()
     }
 
-    fn as_slice(self) -> &'a [T] {
+    /// Converts the unchecked slice back into a checked one
+    pub fn as_slice(self) -> &'a [T] {
         self.slice
     }
 
-    unsafe fn slice(&self, from: uint, to: uint) -> UncheckedSlice<'a, T> {
+    /// Gets a subslice of this one
+    pub unsafe fn slice<'b>(&'b self, from: uint, to: uint) -> UncheckedSlice<'b, T> {
         UncheckedSlice::new(self.slice.as_raw().slice(from, to).as_slice())
     }
 
-    unsafe fn slice_from(&self, from: uint) -> UncheckedSlice<'a, T> {
+    /// Gets a subslice from the given index to its end
+    pub unsafe fn slice_from<'b>(&'b self, from: uint) -> UncheckedSlice<'b, T> {
         self.slice(from, self.len())
     }
 
-    unsafe fn slice_to(&self, to: uint) -> UncheckedSlice<'a, T> {
+    /// Gets a subslice from 0 to the given index
+    pub unsafe fn slice_to<'b>(&'b self, to: uint) -> UncheckedSlice<'b, T> {
         self.slice(0, to)
     }
 
-    unsafe fn split_at(&self, at: uint) -> (UncheckedSlice<'a, T>, UncheckedSlice<'a, T>) {
+    /// Splits the given slice into two disjoint slices at the given index
+    pub unsafe fn split_at<'b>(&'b self, at: uint) -> (UncheckedSlice<'b, T>, UncheckedSlice<'b, T>) {
         (self.slice_to(at), self.slice_from(at))
     }
 
-    unsafe fn get(&self, index: uint) ->  &'a T {
+    /// Gets the value at the given index
+    pub unsafe fn get(&self, index: uint) ->  &T {
         self.slice.as_raw().get(index)
     }
 }
 
 impl<'a, T> UncheckedMutSlice<'a, T> {
-    fn new(slice: &'a mut [T]) -> UncheckedMutSlice<'a, T> {
+    /// Makes a new unchecked slice from a slice
+    pub fn new(slice: &'a mut [T]) -> UncheckedMutSlice<'a, T> {
         UncheckedMutSlice{ slice: slice }
     }
 
-    fn len(&self) -> uint {
+    /// Gets the length of the slice
+    pub fn len(&self) -> uint {
         self.slice.len()
     }
 
-    fn as_slice(self) -> &'a [T] {
+    /// Converts the unchecked slice back into a checked one
+    pub fn as_slice(self) -> &'a [T] {
         self.slice
     }
 
-    fn as_mut_slice(self) -> &'a mut [T] {
+    /// Converts the unchecked slice back into a mutable checked one
+    pub fn as_mut_slice(self) -> &'a mut [T] {
         self.slice
     }
 
-    unsafe fn slice(&mut self, from: uint, to: uint) -> UncheckedMutSlice<'a, T> {
+    /// Gets a subslice of this one
+    pub unsafe fn slice<'b>(&'b mut self, from: uint, to: uint) -> UncheckedMutSlice<'b, T> {
         UncheckedMutSlice::new(self.slice.as_mut_raw().slice(from, to).as_mut_slice())
     }
 
-    unsafe fn slice_from(&mut self, from: uint) -> UncheckedMutSlice<'a, T> {
+    /// Gets a subslice from the given index to its end
+    pub unsafe fn slice_from<'b>(&'b mut self, from: uint) -> UncheckedMutSlice<'b, T> {
         let len = self.len();
         self.slice(from, len)
     }
 
-    unsafe fn slice_to(&mut self, to: uint) -> UncheckedMutSlice<'a, T> {
+    /// Gets a subslice from 0 to the given index
+    pub unsafe fn slice_to<'b>(&'b mut self, to: uint) -> UncheckedMutSlice<'b, T> {
         self.slice(0, to)
     }
 
-    unsafe fn split_at(&mut self, at: uint) ->
-            (UncheckedMutSlice<'a, T>, UncheckedMutSlice<'a, T>) {
+    /// Splits the given slice into two disjoint slices at the given index
+    pub unsafe fn split_at<'b>(&'b mut self, at: uint) ->
+            (UncheckedMutSlice<'b, T>, UncheckedMutSlice<'b, T>) {
         let raw = self.slice.as_mut_raw();
         (raw.slice_to(at).as_mut_slice().unchecked_mut(),
         raw.slice_from(at).as_mut_slice().unchecked_mut())
     }
 
-    unsafe fn get(&mut self, index: uint) ->  &'a T {
+    /// Gets the value at the given index
+    pub unsafe fn get(&mut self, index: uint) ->  &T {
         self.slice.as_mut_raw().get_mut(index)
     }
 
-    unsafe fn get_mut(&mut self, index: uint) ->  &'a mut T {
+    /// Gets the value at the given index mutably
+    pub unsafe fn get_mut(&mut self, index: uint) ->  &mut T {
         self.slice.as_mut_raw().get_mut(index)
     }
 }
