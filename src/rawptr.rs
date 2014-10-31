@@ -3,7 +3,7 @@ use std::ptr;
 use std::raw::Slice;
 use rawslice::{RawSlice, RawMutSlice};
 
-/// Methods on raw pointers
+/// Extension trait for convenience methods on raw pointers
 pub trait RawPtrExt<T>: RawPtr<T> {
     /// Converts the pointer into a raw slice.
     fn as_raw_slice(self, len: uint) -> *const [T];
@@ -29,7 +29,7 @@ pub trait RawPtrExt<T>: RawPtr<T> {
     unsafe fn read(self) -> T;
 }
 
-/// Methods on mutable raw pointers
+/// Extension trait for convenience methods on mutable raw pointers
 pub trait RawMutPtrExt<T>: RawPtrExt<T> {
     /// Converts the pointer into a raw mutable slice.
     fn as_raw_mut_slice(self, len: uint) -> *mut [T];
@@ -135,5 +135,71 @@ impl<T> RawMutPtrExt<T> for *mut T {
 
     unsafe fn replace(self, src: T) -> T {
         ptr::replace(self, src)
+    }
+}
+
+
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_arithmetic() {
+        unsafe {
+            let mut x = [1u,2,3,4];
+            let y = x[].as_ptr();
+            assert_eq!(*y, 1);
+            assert_eq!(*y.add(2), 3);
+            assert_eq!(*y.add(2).sub(1), 2);
+
+            let y = x[mut].as_mut_ptr();
+            assert_eq!(*y, 1);
+            assert_eq!(*y.add(2), 3);
+            assert_eq!(*y.add(2).sub(1), 2);
+        }
+    }
+
+    #[test]
+    fn test_read_write() {
+        unsafe {
+            let x = &mut 1u as *mut _;
+            assert_eq!(x.read(), 1);
+            x.write(2);
+            assert_eq!(x.read(), 2);
+            x.write_bytes(0, 1);
+            assert_eq!(x.read(), 0);
+        }
+    }
+
+    #[test]
+    fn test_copy() {
+        unsafe {
+            let mut x = [1u,2,3,4];
+            let y = [5u,6,7,8];
+            let xptr = x[mut].as_mut_ptr();
+            let yptr = y[].as_ptr();
+
+            xptr.copy(xptr.add(1) as *const _, 2);
+            assert_eq!(x[], [2,3,3,4][]);
+            xptr.copy_nonoverlapping(yptr, 4);
+            assert_eq!(x[], y[]);
+        }
+    }
+
+    #[test]
+    fn test_swap_replace() {
+        unsafe {
+            let x = &mut 1u as *mut _;
+            let y = &mut 2;
+            x.swap(y);
+            assert_eq!(*x, 2);
+            assert_eq!(*y, 1);
+
+
+            x.replace(3);
+            assert_eq!(*x, 3);
+        }
     }
 }

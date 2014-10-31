@@ -1,15 +1,16 @@
 use rawptr::{RawPtrExt, RawMutPtrExt};
 
+/// Extension trait for non-mutating operations on raw slices.
 pub trait RawSlice<T>: Copy {
-    /// Converts the rawslice into a slice
+    /// Converts the rawslice into a slice.
     unsafe fn as_slice<'a>(self) -> &'a [T];
 
-    /// Gets the length of the rawslice
+    /// Gets the length of the rawslice.
     fn len(self) -> uint {
         unsafe { self.as_slice().len() }
     }
 
-    /// Converts the rawslice into a rawptr
+    /// Converts the rawslice into a rawptr.
     fn as_ptr(self) -> *const T {
         unsafe { self.as_slice().as_ptr() }
     }
@@ -20,30 +21,32 @@ pub trait RawSlice<T>: Copy {
         self.as_ptr().offset(index as int).read()
     }
 
-    /// Gets a reference to the element at the given index
+    /// Gets a reference to the element at the given index.
     unsafe fn get<'a>(self, index: uint) -> &'a T {
         &*self.as_ptr().offset(index as int)
     }
 
-    /// Gets a subslice of this one
+    /// Gets a subslice of this one.
     unsafe fn slice(self, from: uint, to: uint) -> Self;
 
-    /// Gets a subslice from 0 to `to`
+    /// Gets a subslice from 0 to `to`.
     fn slice_to(self, to: uint) -> Self {
         unsafe { self.slice(0, to) }
     }
 
-    /// Gets a subslice from `from` to the end of the slice
+    /// Gets a subslice from `from` to the end of the slice.
     unsafe fn slice_from(self, from: uint) -> Self {
         self.slice(from, self.len())
     }
 }
 
+
+/// Extension trait for mutating operations on raw slices.
 pub trait RawMutSlice<T> : RawSlice<T> {
-    /// Converts the rawslice into a mutable slice
+    /// Converts the rawslice into a mutable slice.
     unsafe fn as_mut_slice<'a>(self) -> &'a mut[T];
 
-    /// Converts the rawslice into a mutable rawptr
+    /// Converts the rawslice into a mutable rawptr.
     fn as_mut_ptr(self) -> *mut T;
 
     /// Writes a value to the given index without reading or destroying whatever
@@ -65,15 +68,16 @@ pub trait RawMutSlice<T> : RawSlice<T> {
     /// not consider the target's length.
     unsafe fn copy_nonoverlapping(self, from: *const[T]);
 
-    /// Gets a mutable reference to the value at the given index
+    /// Gets a mutable reference to the value at the given index.
     unsafe fn get_mut<'a>(self, index: uint) -> &'a mut T;
 }
 
+/// Extension trait to add conversion to raw slices to slices.
 pub trait SliceRawExt<T> for Sized? {
-    /// Converts the slice into a raw slice
+    /// Converts the slice into a raw slice.
     fn as_raw(&self) -> *const [T];
 
-    /// Converts the mutable slice into a mutable raw slice
+    /// Converts the mutable slice into a mutable raw slice.
     fn as_mut_raw(&mut self) -> *mut [T];
 }
 
