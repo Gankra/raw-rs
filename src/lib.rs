@@ -9,6 +9,7 @@
 // except according to those terms.
 
 #![feature(globs)]
+#![feature(slicing_syntax)]
 
 //! Utilities for working with the raw representations of core Rust data types.
 //!
