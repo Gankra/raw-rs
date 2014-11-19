@@ -28,7 +28,7 @@ pub trait RawPtrExt<T>: RawPtr<T> {
         self.offset(count as int)
     }
 
-    // Calculates the offset from a pointer by subtraction. The offset *must* be in-bounds of
+    /// Calculates the offset from a pointer by subtraction. The offset *must* be in-bounds of
     /// the object, or one-byte-past-the-end.  `count` is in units of T; e.g. a
     /// `count` of 3 represents a pointer offset of `3 * sizeof::<T>()` bytes.
     unsafe fn sub(self, count: uint) -> Self {
