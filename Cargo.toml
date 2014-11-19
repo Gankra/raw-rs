@@ -1,5 +1,5 @@
 [package]
 
-name = "raw-rs"
+name = "raw"
 version = "0.0.1"
 authors = ["Alexis Beingessner <a.beingessner@gmail.com>"]
