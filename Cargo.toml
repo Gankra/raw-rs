@@ -1,5 +1,9 @@
 [package]
 
 name = "raw"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Alexis Beingessner <a.beingessner@gmail.com>"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/Gankro/raw-rs.git"
+description = "Utilities for unsafely manipulating raw representations in Rust"
+readme = "README.md"
