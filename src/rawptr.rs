@@ -14,7 +14,7 @@ use std::raw::Slice;
 use rawslice::{RawSlice, RawMutSlice};
 
 /// Extension trait for convenience methods on raw pointers
-pub trait RawPtrExt<T>: RawPtr<T> {
+pub trait RawPtrExt<T>: PtrExt<T> {
     /// Converts the pointer into a raw slice.
     fn as_raw_slice(self, len: uint) -> *const [T];
 
@@ -40,7 +40,7 @@ pub trait RawPtrExt<T>: RawPtr<T> {
 }
 
 /// Extension trait for convenience methods on mutable raw pointers
-pub trait RawMutPtrExt<T>: RawPtrExt<T> {
+pub trait RawMutPtrExt<T>: PtrExt<T> {
     /// Converts the pointer into a raw mutable slice.
     fn as_raw_mut_slice(self, len: uint) -> *mut [T];
 
@@ -159,12 +159,12 @@ mod test {
     fn test_arithmetic() {
         unsafe {
             let mut x = [1u,2,3,4];
-            let y = x[].as_ptr();
+            let y = x.as_ptr();
             assert_eq!(*y, 1);
             assert_eq!(*y.add(2), 3);
             assert_eq!(*y.add(2).sub(1), 2);
 
-            let y = x[mut].as_mut_ptr();
+            let y = x.as_mut_ptr();
             assert_eq!(*y, 1);
             assert_eq!(*y.add(2), 3);
             assert_eq!(*y.add(2).sub(1), 2);
@@ -188,13 +188,13 @@ mod test {
         unsafe {
             let mut x = [1u,2,3,4];
             let y = [5u,6,7,8];
-            let xptr = x[mut].as_mut_ptr();
-            let yptr = y[].as_ptr();
+            let xptr = x.as_mut_ptr();
+            let yptr = y.as_ptr();
 
             xptr.copy(xptr.add(1) as *const _, 2);
-            assert_eq!(x[], [2,3,3,4][]);
+            assert_eq!(x, [2,3,3,4]);
             xptr.copy_nonoverlapping(yptr, 4);
-            assert_eq!(x[], y[]);
+            assert_eq!(x, y);
         }
     }
 

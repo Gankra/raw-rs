@@ -20,10 +20,6 @@ pub unsafe fn alloc<T>() -> *mut T {
 ///
 /// * `len` must not be 0.
 ///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
-///
 /// # Aborts
 ///
 /// Aborts on OOM
@@ -41,10 +37,6 @@ pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
 /// # Undefined Behaviour
 ///
 /// * `len` must not be 0.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 ///
 /// # Aborts
 ///
@@ -66,10 +58,6 @@ pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T 
 /// changed `ptr`.
 /// * `len` must not be 0.
 /// * `len` must not be smaller than `old_len`.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
     plain::try_grow_inplace(ptr, old_len, len)
@@ -85,10 +73,6 @@ pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Resu
 /// changed `ptr`.
 /// * `len` must not be 0.
 /// * `len` must not be larger than `old_len`.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
     plain::try_shrink_inplace(ptr, old_len, len)

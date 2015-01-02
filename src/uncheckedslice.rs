@@ -23,18 +23,18 @@ pub struct UncheckedMutSlice<'a, T: 'a> {
 
 pub trait SliceUncheckedExt<T> for Sized? {
     /// Gets a version of the slice where all operations aren't bounds checked.
-    fn unchecked<'a>(&'a self) -> UncheckedSlice<'a, T>;
+    fn as_unchecked<'a>(&'a self) -> UncheckedSlice<'a, T>;
 
     /// Gets a mutable version of the slice where all operations aren't bounds checked.
-    fn unchecked_mut<'a>(&'a mut self) -> UncheckedMutSlice<'a, T>;
+    fn as_unchecked_mut<'a>(&'a mut self) -> UncheckedMutSlice<'a, T>;
 }
 
 impl<T> SliceUncheckedExt<T> for [T] {
-    fn unchecked<'a>(&'a self) -> UncheckedSlice<'a, T> {
+    fn as_unchecked<'a>(&'a self) -> UncheckedSlice<'a, T> {
         UncheckedSlice::new(self)
     }
 
-    fn unchecked_mut<'a>(&'a mut self) -> UncheckedMutSlice<'a, T> {
+    fn as_unchecked_mut<'a>(&'a mut self) -> UncheckedMutSlice<'a, T> {
         UncheckedMutSlice::new(self)
     }
 }
@@ -124,8 +124,8 @@ impl<'a, T> UncheckedMutSlice<'a, T> {
     pub unsafe fn split_at<'b>(&'b mut self, at: uint) ->
             (UncheckedMutSlice<'b, T>, UncheckedMutSlice<'b, T>) {
         let raw = self.slice.as_mut_raw();
-        (raw.slice_to(at).as_mut_slice().unchecked_mut(),
-        raw.slice_from(at).as_mut_slice().unchecked_mut())
+        (raw.slice_to(at).as_mut_slice().as_unchecked_mut(),
+        raw.slice_from(at).as_mut_slice().as_unchecked_mut())
     }
 
     /// Gets the value at the given index.

@@ -1,6 +1,7 @@
 use std::rt::heap::{mod, usable_size, EMPTY};
 use std::mem::{size_of, min_align_of};
 use std::num::Int;
+use std::uint;
 
 /// Allocates and returns a ptr to memory to store a single element of type T. Handles zero-sized
 /// types automatically by returning the non-null EMPTY ptr. Returns `null` on OOM.
@@ -20,10 +21,6 @@ pub unsafe fn alloc<T>() -> *mut T {
 /// # Undefined Behaviour
 ///
 /// * `len` must not be 0.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
     debug_assert!(len != 0, "0 len passed to alloc_array");
@@ -31,7 +28,7 @@ pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
     if size == 0 {
         EMPTY as *mut T
     } else {
-        let desired_size = size.checked_mul(len).expect("capacity overflow");
+        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
         heap::allocate(desired_size, min_align_of::<T>()) as *mut T
     }
 }
@@ -43,10 +40,6 @@ pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
 /// # Undefined Behaviour
 ///
 /// * `len` must not be 0.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T {
     debug_assert!(len != 0, "0 len passed to realloc_array");
@@ -54,7 +47,7 @@ pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T 
     if size == 0 {
         ptr
     } else {
-        let desired_size = size.checked_mul(len).expect("capacity overflow");
+        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
         let align = min_align_of::<T>();
         // No need to check old_size * len, must have been checked when the ptr was made, or
         // else UB anyway.
@@ -72,10 +65,6 @@ pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T 
 /// changed `ptr`.
 /// * `len` must not be 0.
 /// * `len` must not be smaller than `old_len`.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
     debug_assert!(len >= old_len, "new len smaller than old_len in try_grow_inplace");
@@ -84,7 +73,7 @@ pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Resu
     if size == 0 {
         Ok(())
     } else {
-        let desired_size = size.checked_mul(len).expect("capacity overflow");
+        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
         // No need to check size * old_len, must have been checked when the ptr was made, or
         // else UB anyway.
         let result_size = heap::reallocate_inplace(ptr as *mut u8, size * old_len,
@@ -107,10 +96,6 @@ pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Resu
 /// changed `ptr`.
 /// * `len` must not be 0.
 /// * `len` must not be larger than `old_len`.
-///
-/// # Panics
-///
-/// Panics if size_of<T> * len overflows.
 #[inline]
 pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
     debug_assert!(len != 0, "0 len passed to try_shrink_inplace");
