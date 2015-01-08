@@ -1,4 +1,4 @@
-use std::rt::heap::{mod, usable_size, EMPTY};
+use std::rt::heap::{self, usable_size, EMPTY};
 use std::mem::{size_of, min_align_of};
 use std::num::Int;
 use std::uint;

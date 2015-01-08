@@ -14,7 +14,7 @@ use std::raw::Slice;
 use rawslice::{RawSlice, RawMutSlice};
 
 /// Extension trait for convenience methods on raw pointers
-pub trait RawPtrExt<T>: PtrExt<T> {
+pub trait RawPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Converts the pointer into a raw slice.
     fn as_raw_slice(self, len: uint) -> *const [T];
 
@@ -40,7 +40,7 @@ pub trait RawPtrExt<T>: PtrExt<T> {
 }
 
 /// Extension trait for convenience methods on mutable raw pointers
-pub trait RawMutPtrExt<T>: PtrExt<T> {
+pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Converts the pointer into a raw mutable slice.
     fn as_raw_mut_slice(self, len: uint) -> *mut [T];
 

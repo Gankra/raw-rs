@@ -21,7 +21,7 @@ pub struct UncheckedMutSlice<'a, T: 'a> {
 }
 
 
-pub trait SliceUncheckedExt<T> for Sized? {
+pub trait SliceUncheckedExt<T> {
     /// Gets a version of the slice where all operations aren't bounds checked.
     fn as_unchecked<'a>(&'a self) -> UncheckedSlice<'a, T>;
 

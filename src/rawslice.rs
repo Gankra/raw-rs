@@ -11,7 +11,7 @@
 use rawptr::{RawPtrExt, RawMutPtrExt};
 
 /// Extension trait for non-mutating operations on raw slices.
-pub trait RawSlice<T>: Copy {
+pub trait RawSlice<T>: Copy + Sized {
     /// Converts the rawslice into a slice.
     unsafe fn as_slice<'a>(self) -> &'a [T];
 
@@ -52,7 +52,7 @@ pub trait RawSlice<T>: Copy {
 
 
 /// Extension trait for mutating operations on raw slices.
-pub trait RawMutSlice<T> : RawSlice<T> {
+pub trait RawMutSlice<T> : RawSlice<T> + Sized {
     /// Converts the rawslice into a mutable slice.
     unsafe fn as_mut_slice<'a>(self) -> &'a mut[T];
 
@@ -83,7 +83,7 @@ pub trait RawMutSlice<T> : RawSlice<T> {
 }
 
 /// Extension trait to add conversion to raw slices to slices.
-pub trait SliceRawExt<T> for Sized? {
+pub trait SliceRawExt<T> {
     /// Converts the slice into a raw slice.
     fn as_raw(&self) -> *const [T];
 
