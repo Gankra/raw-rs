@@ -16,23 +16,23 @@ use rawslice::{RawSlice, RawMutSlice};
 /// Extension trait for convenience methods on raw pointers
 pub trait RawPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Converts the pointer into a raw slice.
-    fn as_raw_slice(self, len: uint) -> *const [T];
+    fn as_raw_slice(self, len: usize) -> *const [T];
 
     /// Converts the pointer into a slice.
-    unsafe fn as_slice<'a>(self, len: uint) -> &'a [T];
+    unsafe fn as_slice<'a>(self, len: usize) -> &'a [T];
 
     /// Calculates the offset from a pointer by addition. The offset *must* be in-bounds of
     /// the object, or one-byte-past-the-end.  `count` is in units of T; e.g. a
     /// `count` of 3 represents a pointer offset of `3 * sizeof::<T>()` bytes.
-    unsafe fn add(self, count: uint) -> Self {
-        self.offset(count as int)
+    unsafe fn add(self, count: usize) -> Self {
+        self.offset(count as isize)
     }
 
     /// Calculates the offset from a pointer by subtraction. The offset *must* be in-bounds of
     /// the object, or one-byte-past-the-end.  `count` is in units of T; e.g. a
     /// `count` of 3 represents a pointer offset of `3 * sizeof::<T>()` bytes.
-    unsafe fn sub(self, count: uint) -> Self {
-        self.offset(-(count as int))
+    unsafe fn sub(self, count: usize) -> Self {
+        self.offset(-(count as isize))
     }
 
     /// Reads the value from `self` and returns it.
@@ -42,10 +42,10 @@ pub trait RawPtrExt<T>: PtrExt<Target=T> + Sized {
 /// Extension trait for convenience methods on mutable raw pointers
 pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Converts the pointer into a raw mutable slice.
-    fn as_raw_mut_slice(self, len: uint) -> *mut [T];
+    fn as_raw_mut_slice(self, len: usize) -> *mut [T];
 
     /// Converts the pointer into a mutable slice.
-    unsafe fn as_mut_slice<'a>(self, len: uint) -> &'a mut [T];
+    unsafe fn as_mut_slice<'a>(self, len: usize) -> &'a mut [T];
 
     /// Unsafely overwrite a memory location with the given value without destroying
     /// the old value.
@@ -57,15 +57,15 @@ pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
 
     /// Sets the `count * size_of<T>()` bytes at the address of this pointer to the the given
     /// byte. Good for zeroing out memory.
-    unsafe fn write_bytes(self, byte: u8, count: uint);
+    unsafe fn write_bytes(self, byte: u8, count: usize);
 
     /// Copies `count * size_of<T>()` many bytes from `src` to the address of this pointer,
     /// assuming that the source and destination *may* overlap.
-    unsafe fn copy(self, src: *const T, count: uint);
+    unsafe fn copy(self, src: *const T, count: usize);
 
     /// Copies `count * size_of<T>()` many bytes from `src` to the address of this pointer,
     /// assuming that the source and destination *do not* overlap.
-    unsafe fn copy_nonoverlapping(self, src: *const T, count: uint);
+    unsafe fn copy_nonoverlapping(self, src: *const T, count: usize);
 
     /// Swaps the values of `self` and `y`. Note that in contrast to `mem::swap`, `x` and `y`
     /// may point to the same address of memory. Useful for making some operations branchless.
@@ -77,7 +77,7 @@ pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
 }
 
 impl<T> RawPtrExt<T> for *const T {
-    fn as_raw_slice(self, len: uint) -> *const [T] {
+    fn as_raw_slice(self, len: usize) -> *const [T] {
         unsafe {
             mem::transmute(Slice {
                 data: self,
@@ -86,7 +86,7 @@ impl<T> RawPtrExt<T> for *const T {
         }
     }
 
-    unsafe fn as_slice<'a>(self, len: uint) -> &'a [T] {
+    unsafe fn as_slice<'a>(self, len: usize) -> &'a [T] {
         self.as_raw_slice(len).as_slice()
     }
 
@@ -96,11 +96,11 @@ impl<T> RawPtrExt<T> for *const T {
 }
 
 impl<T> RawPtrExt<T> for *mut T {
-    fn as_raw_slice(self, len: uint) -> *const [T] {
+    fn as_raw_slice(self, len: usize) -> *const [T] {
         (self as *const T).as_raw_slice(len)
     }
 
-    unsafe fn as_slice<'a>(self, len: uint) -> &'a [T] {
+    unsafe fn as_slice<'a>(self, len: usize) -> &'a [T] {
         self.as_raw_slice(len).as_slice()
     }
 
@@ -110,7 +110,7 @@ impl<T> RawPtrExt<T> for *mut T {
 }
 
 impl<T> RawMutPtrExt<T> for *mut T {
-    fn as_raw_mut_slice(self, len: uint) -> *mut [T] {
+    fn as_raw_mut_slice(self, len: usize) -> *mut [T] {
         unsafe {
             mem::transmute(Slice {
                 data: self as *const T,
@@ -119,7 +119,7 @@ impl<T> RawMutPtrExt<T> for *mut T {
         }
     }
 
-    unsafe fn as_mut_slice<'a>(self, len: uint) -> &'a mut [T] {
+    unsafe fn as_mut_slice<'a>(self, len: usize) -> &'a mut [T] {
         self.as_raw_mut_slice(len).as_mut_slice()
     }
 
@@ -127,16 +127,16 @@ impl<T> RawMutPtrExt<T> for *mut T {
         ptr::write(self, src);
     }
 
-    unsafe fn write_bytes(self, byte: u8, count: uint) {
-        ptr::set_memory(self, byte, count);
+    unsafe fn write_bytes(self, byte: u8, count: usize) {
+        ptr::write_bytes(self, byte, count);
     }
 
-    unsafe fn copy(self, src: *const T, count: uint) {
-        ptr::copy_memory(self, src, count);
+    unsafe fn copy(self, src: *const T, count: usize) {
+        ptr::copy(self, src, count);
     }
 
-    unsafe fn copy_nonoverlapping(self, src: *const T, count: uint) {
-        ptr::copy_nonoverlapping_memory(self, src, count);
+    unsafe fn copy_nonoverlapping(self, src: *const T, count: usize) {
+        ptr::copy_nonoverlapping(self, src, count);
     }
 
     unsafe fn swap(self, y: *mut T) {

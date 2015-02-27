@@ -1,7 +1,7 @@
 use std::rt::heap::{self, usable_size, EMPTY};
 use std::mem::{size_of, min_align_of};
 use std::num::Int;
-use std::uint;
+use std::usize;
 
 /// Allocates and returns a ptr to memory to store a single element of type T. Handles zero-sized
 /// types automatically by returning the non-null EMPTY ptr. Returns `null` on OOM.
@@ -22,13 +22,13 @@ pub unsafe fn alloc<T>() -> *mut T {
 ///
 /// * `len` must not be 0.
 #[inline]
-pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
+pub unsafe fn alloc_array<T>(len: usize) -> *mut T {
     debug_assert!(len != 0, "0 len passed to alloc_array");
     let size = size_of::<T>();
     if size == 0 {
         EMPTY as *mut T
     } else {
-        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
+        let desired_size = size.checked_mul(len).unwrap_or(usize::MAX);
         heap::allocate(desired_size, min_align_of::<T>()) as *mut T
     }
 }
@@ -41,13 +41,13 @@ pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
 ///
 /// * `len` must not be 0.
 #[inline]
-pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T {
+pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: usize, len: usize) -> *mut T {
     debug_assert!(len != 0, "0 len passed to realloc_array");
     let size = size_of::<T>();
     if size == 0 {
         ptr
     } else {
-        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
+        let desired_size = size.checked_mul(len).unwrap_or(usize::MAX);
         let align = min_align_of::<T>();
         // No need to check old_size * len, must have been checked when the ptr was made, or
         // else UB anyway.
@@ -66,14 +66,14 @@ pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T 
 /// * `len` must not be 0.
 /// * `len` must not be smaller than `old_len`.
 #[inline]
-pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
+pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: usize, len: usize) -> Result<(), ()> {
     debug_assert!(len >= old_len, "new len smaller than old_len in try_grow_inplace");
     let size = size_of::<T>();
     let align = min_align_of::<T>();
     if size == 0 {
         Ok(())
     } else {
-        let desired_size = size.checked_mul(len).unwrap_or(uint::MAX);
+        let desired_size = size.checked_mul(len).unwrap_or(usize::MAX);
         // No need to check size * old_len, must have been checked when the ptr was made, or
         // else UB anyway.
         let result_size = heap::reallocate_inplace(ptr as *mut u8, size * old_len,
@@ -97,7 +97,7 @@ pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Resu
 /// * `len` must not be 0.
 /// * `len` must not be larger than `old_len`.
 #[inline]
-pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
+pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: usize, len: usize) -> Result<(), ()> {
     debug_assert!(len != 0, "0 len passed to try_shrink_inplace");
     debug_assert!(len <= old_len, "new len bigger than old_len in try_grow_inplace");
     let size = size_of::<T>();
@@ -146,7 +146,7 @@ pub unsafe fn dealloc<T>(ptr: *mut T) {
 /// * `len` must be the `len` provided to the last successful allocator call that created or
 /// changed `ptr`.
 #[inline]
-pub unsafe fn dealloc_array<T>(ptr: *mut T, len: uint) {
+pub unsafe fn dealloc_array<T>(ptr: *mut T, len: usize) {
     let size = size_of::<T>();
     if size == 0 {
         // Do nothing

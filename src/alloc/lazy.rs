@@ -24,7 +24,7 @@ pub unsafe fn alloc<T>() -> *mut T {
 ///
 /// Aborts on OOM
 #[inline]
-pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
+pub unsafe fn alloc_array<T>(len: usize) -> *mut T {
     let ptr = plain::alloc_array::<T>(len);
     if ptr.is_null() { oom() }
     ptr
@@ -42,7 +42,7 @@ pub unsafe fn alloc_array<T>(len: uint) -> *mut T {
 ///
 /// Aborts on OOM
 #[inline]
-pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T {
+pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: usize, len: usize) -> *mut T {
     let ptr = plain::realloc_array(ptr, old_len, len);
     if ptr.is_null() { oom() }
     ptr
@@ -59,7 +59,7 @@ pub unsafe fn realloc_array<T>(ptr: *mut T, old_len: uint, len: uint) -> *mut T 
 /// * `len` must not be 0.
 /// * `len` must not be smaller than `old_len`.
 #[inline]
-pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
+pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: usize, len: usize) -> Result<(), ()> {
     plain::try_grow_inplace(ptr, old_len, len)
 }
 
@@ -74,7 +74,7 @@ pub unsafe fn try_grow_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Resu
 /// * `len` must not be 0.
 /// * `len` must not be larger than `old_len`.
 #[inline]
-pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: uint, len: uint) -> Result<(), ()> {
+pub unsafe fn try_shrink_inplace<T>(ptr: *mut T, old_len: usize, len: usize) -> Result<(), ()> {
     plain::try_shrink_inplace(ptr, old_len, len)
 }
 
@@ -101,6 +101,6 @@ pub unsafe fn dealloc<T>(ptr: *mut T) {
 /// * `len` must be the `len` provided to the last successful allocator call that created or
 /// changed `ptr`.
 #[inline]
-pub unsafe fn dealloc_array<T>(ptr: *mut T, len: uint) {
+pub unsafe fn dealloc_array<T>(ptr: *mut T, len: usize) {
     plain::dealloc_array(ptr, len);
 }
