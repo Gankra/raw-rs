@@ -143,11 +143,11 @@ impl<T> RawMutSlice<T> for *mut [T] {
     }
 
     unsafe fn copy(self, from: *const[T]) {
-        self.as_mut_ptr().copy(from.as_ptr(), from.len());
+        from.as_ptr().copy(self.as_mut_ptr(), from.len());
     }
 
     unsafe fn copy_nonoverlapping(self, from: *const[T]) {
-        self.as_mut_ptr().copy_nonoverlapping(from.as_ptr(), from.len());
+        from.as_ptr().copy_nonoverlapping(self.as_mut_ptr(), from.len());
     }
 
     unsafe fn get_mut<'a>(self, index: usize) -> &'a mut T {

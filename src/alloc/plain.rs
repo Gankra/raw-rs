@@ -1,6 +1,5 @@
 use std::rt::heap::{self, usable_size, EMPTY};
 use std::mem::{size_of, min_align_of};
-use std::num::Int;
 use std::usize;
 
 /// Allocates and returns a ptr to memory to store a single element of type T. Handles zero-sized

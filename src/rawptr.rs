@@ -14,7 +14,7 @@ use std::raw::Slice;
 use rawslice::{RawSlice, RawMutSlice};
 
 /// Extension trait for convenience methods on raw pointers
-pub trait RawPtrExt<T>: PtrExt<Target=T> + Sized {
+pub trait RawPtrExt<T> {
     /// Converts the pointer into a raw slice.
     fn as_raw_slice(self, len: usize) -> *const [T];
 
@@ -24,23 +24,27 @@ pub trait RawPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Calculates the offset from a pointer by addition. The offset *must* be in-bounds of
     /// the object, or one-byte-past-the-end.  `count` is in units of T; e.g. a
     /// `count` of 3 represents a pointer offset of `3 * sizeof::<T>()` bytes.
-    unsafe fn add(self, count: usize) -> Self {
-        self.offset(count as isize)
-    }
+    unsafe fn add(self, count: usize) -> Self;
 
     /// Calculates the offset from a pointer by subtraction. The offset *must* be in-bounds of
     /// the object, or one-byte-past-the-end.  `count` is in units of T; e.g. a
     /// `count` of 3 represents a pointer offset of `3 * sizeof::<T>()` bytes.
-    unsafe fn sub(self, count: usize) -> Self {
-        self.offset(-(count as isize))
-    }
+    unsafe fn sub(self, count: usize) -> Self;
 
     /// Reads the value from `self` and returns it.
     unsafe fn read(self) -> T;
+
+    /// Copies `count * size_of<T>()` many bytes from `self` to `dest`,
+    /// assuming that the source and destination *may* overlap.
+    unsafe fn copy(self, dest: *mut T, count: usize);
+
+    /// Copies `count * size_of<T>()` many bytes from `self` to `dest`,
+    /// assuming that the source and destination *do not* overlap.
+    unsafe fn copy_nonoverlapping(self, dest: *mut T, count: usize);
 }
 
 /// Extension trait for convenience methods on mutable raw pointers
-pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
+pub trait RawMutPtrExt<T> {
     /// Converts the pointer into a raw mutable slice.
     fn as_raw_mut_slice(self, len: usize) -> *mut [T];
 
@@ -58,14 +62,6 @@ pub trait RawMutPtrExt<T>: PtrExt<Target=T> + Sized {
     /// Sets the `count * size_of<T>()` bytes at the address of this pointer to the the given
     /// byte. Good for zeroing out memory.
     unsafe fn write_bytes(self, byte: u8, count: usize);
-
-    /// Copies `count * size_of<T>()` many bytes from `src` to the address of this pointer,
-    /// assuming that the source and destination *may* overlap.
-    unsafe fn copy(self, src: *const T, count: usize);
-
-    /// Copies `count * size_of<T>()` many bytes from `src` to the address of this pointer,
-    /// assuming that the source and destination *do not* overlap.
-    unsafe fn copy_nonoverlapping(self, src: *const T, count: usize);
 
     /// Swaps the values of `self` and `y`. Note that in contrast to `mem::swap`, `x` and `y`
     /// may point to the same address of memory. Useful for making some operations branchless.
@@ -93,6 +89,22 @@ impl<T> RawPtrExt<T> for *const T {
     unsafe fn read(self) -> T {
         ptr::read(self)
     }
+
+    unsafe fn add(self, count: usize) -> Self {
+        self.offset(count as isize)
+    }
+
+    unsafe fn sub(self, count: usize) -> Self {
+        self.offset(-(count as isize))
+    }
+
+    unsafe fn copy(self, dest: *mut T, count: usize) {
+        ptr::copy(self, dest, count);
+    }
+
+    unsafe fn copy_nonoverlapping(self, dest: *mut T, count: usize) {
+        ptr::copy_nonoverlapping(self, dest, count);
+    }
 }
 
 impl<T> RawPtrExt<T> for *mut T {
@@ -106,6 +118,22 @@ impl<T> RawPtrExt<T> for *mut T {
 
     unsafe fn read(self) -> T {
         ptr::read(self as *const T)
+    }
+
+    unsafe fn add(self, count: usize) -> Self {
+        self.offset(count as isize)
+    }
+
+    unsafe fn sub(self, count: usize) -> Self {
+        self.offset(-(count as isize))
+    }
+
+    unsafe fn copy(self, dest: *mut T, count: usize) {
+        ptr::copy(self, dest, count);
+    }
+
+    unsafe fn copy_nonoverlapping(self, dest: *mut T, count: usize) {
+        ptr::copy_nonoverlapping(self, dest, count);
     }
 }
 
@@ -131,14 +159,6 @@ impl<T> RawMutPtrExt<T> for *mut T {
         ptr::write_bytes(self, byte, count);
     }
 
-    unsafe fn copy(self, src: *const T, count: usize) {
-        ptr::copy(self, src, count);
-    }
-
-    unsafe fn copy_nonoverlapping(self, src: *const T, count: usize) {
-        ptr::copy_nonoverlapping(self, src, count);
-    }
-
     unsafe fn swap(self, y: *mut T) {
         ptr::swap(self, y);
     }
@@ -158,7 +178,7 @@ mod test {
     #[test]
     fn test_arithmetic() {
         unsafe {
-            let mut x = [1u,2,3,4];
+            let mut x = [1,2,3,4];
             let y = x.as_ptr();
             assert_eq!(*y, 1);
             assert_eq!(*y.add(2), 3);
@@ -174,7 +194,7 @@ mod test {
     #[test]
     fn test_read_write() {
         unsafe {
-            let x = &mut 1u as *mut _;
+            let x = &mut 1 as *mut _;
             assert_eq!(x.read(), 1);
             x.write(2);
             assert_eq!(x.read(), 2);
@@ -186,14 +206,14 @@ mod test {
     #[test]
     fn test_copy() {
         unsafe {
-            let mut x = [1u,2,3,4];
-            let y = [5u,6,7,8];
+            let mut x = [1,2,3,4];
+            let y = [5,6,7,8];
             let xptr = x.as_mut_ptr();
             let yptr = y.as_ptr();
 
-            xptr.copy(xptr.add(1) as *const _, 2);
+            xptr.add(1).copy(xptr, 2);
             assert_eq!(x, [2,3,3,4]);
-            xptr.copy_nonoverlapping(yptr, 4);
+            yptr.copy_nonoverlapping(xptr, 4);
             assert_eq!(x, y);
         }
     }
@@ -201,7 +221,7 @@ mod test {
     #[test]
     fn test_swap_replace() {
         unsafe {
-            let x = &mut 1u as *mut _;
+            let x = &mut 1 as *mut _;
             let y = &mut 2;
             x.swap(y);
             assert_eq!(*x, 2);
